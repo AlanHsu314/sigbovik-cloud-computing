@@ -35,6 +35,9 @@ class MLP(nn.Module):
             for i in range(num_layers)
         ])
 
+    def forward(self, x):
+        return self.mlp(x)
+
 class Autoencoder(nn.Module):
     def __init__(self, in_dim, hidden_dim, num_layers):
         super(Autoencoder, self).__init__()

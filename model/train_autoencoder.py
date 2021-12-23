@@ -17,9 +17,12 @@ parser.add_argument('--auto_epochs', type=int, default=100)
 parser.add_argument('--cls_epochs', type=int, default=50)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--seed', type=int, default=10701)
-parser.add_argument('--ckpt_dir', type=str, default=None)
+parser.add_argument('--ckpt_dir', type=str, default='checkpoints')
 parser.add_argument('--gpu', action='store_true')
 args = parser.parse_args()
+
+if not os.path.isdir(args.ckpt_dir):
+    os.mkdir(args.ckpt_dir)
 
 auto_save_path = os.path.join(args.ckpt_dir, 'auto_ckpt.pth')
 cls_save_path = os.path.join(args.ckpt_dir, 'cls_ckpt.pth')
@@ -63,6 +66,7 @@ def train_autoencoder(model, loader, criterion, optimizer):
     for x, _ in tqdm(loader):
         optimizer.zero_grad()
         x = x.to(device)
+        x = x.reshape(x.shape[0], -1)
         out = model(x)
         loss = criterion(out, x)
         loss.backward()
@@ -75,6 +79,7 @@ def test_autoencoder(model, loader, criterion):
     with torch.no_grad():
         for x, _ in tqdm(loader):
             x = x.to(device)
+            x = x.reshape(x.shape[0], -1)
             out = model(x)
             loss = criterion(out, x)
             epoch_loss += loss
@@ -86,6 +91,7 @@ def train_classifier(model, loader, criterion, optimizer):
     for x, y in tqdm(train_loader):
         optimizer.zero_grad()
         x = x.to(device)
+        x = x.reshape(x.shape[0], -1)
         out = model(x)
         pred = torch.argmax(out, dim=-1)
         num_correct = torch.sum(pred == y)
@@ -102,6 +108,7 @@ def test_classifier(model, loader, criterion):
     with torch.no_grad():
         for x, y in tqdm(loader):
             x = x.to(device)
+            x = x.reshape(x.shape[0], -1)
             out = model(x)
             pred = torch.argmax(out, dim=-1)
             num_correct = torch.sum(pred == y)
